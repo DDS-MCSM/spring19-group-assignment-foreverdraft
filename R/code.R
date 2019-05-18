@@ -1,15 +1,3 @@
-#' Title
-#'
-#' @details This are the details
-#' @return
-#' @export
-#'
-#' @examples
-sample_function <- function() {
-  print("Hello world")
-}
-
-
 # Hello, world!
 #
 # This is an example function named 'hello'
@@ -29,7 +17,16 @@ hello <- function() {
   print("Hello, world!")
 }
 
-# Create.directory
+#' create.directory
+#'
+#' create Directory?
+#'
+#' @return None
+#'
+#' @examples
+#' TBD
+#'
+#' @export
 create.directory <- function(){
   dir.data <- file.path(getwd(), "data")
   if (!dir.exists(dir.data)) {
@@ -37,7 +34,19 @@ create.directory <- function(){
   }
 }
 
-# Maxmind - Downloads the requested data
+#' download.data
+#'
+#' Maxmind - Downloads the requested data
+#'
+#' @param site URL to get the data from
+#' @param destfile local path to save downloaded data
+#'
+#' @return None
+#'
+#' @examples
+#' TBD
+#'
+#' @export
 download.data <- function(site,destfile) {
   create.directory()
   destination.path <- file.path(getwd(),"data",destfile)
@@ -46,7 +55,16 @@ download.data <- function(site,destfile) {
   }
 }
 
-# scans.io - Obtener datos en crudo
+#' get.scansioscans.io
+#'
+#' Obtener datos en crudo
+#'
+#' @return scansio dataframe
+#'
+#' @examples
+#' TBD
+#'
+#' @export
 get.scansio <- function(){
   scansio.url <- "https://opendata.rapid7.com/sonar.tcp/2019-04-04-1554350684-ftp_21.csv.gz"
   scansio.source <- file.path(getwd(), "data","scans.io.tcp21.csv")
@@ -58,7 +76,16 @@ get.scansio <- function(){
   rm(scansio.file.gz)
 }
 
-# Maxmind - Obtener datos en crudo (city)
+#' get.maxdata
+#'
+#' Maxmind - Obtener datos en crudo (city)
+#'
+#' @return maxmin dataframe
+#'
+#' @examples
+#' TBD
+#'
+#' @export
 get.maxdata <- function(){
   maxmind.file <- "maxmind.zip"
   download.data(site = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip", destfile = maxmind.file)
@@ -71,7 +98,19 @@ get.maxdata <- function(){
   rm(maxmind.file, zipfiles)
 }
 
-# Returns a DF with first n rows.
+#' generate.df
+#'
+#' Returns a DF with first n rows.
+#'
+#' @param df specific DataFrame to extract info from
+#' @param n number of rows to extract from the data frame to return
+#'
+#' @return muestra which will be the requested n first rows of the DF
+#'
+#' @examples
+#' TBD
+#'
+#' @export
 generate.df <- function(df,nrows){
   muestra.df <- df(1:nrow(),)
   return(muestra.df)
