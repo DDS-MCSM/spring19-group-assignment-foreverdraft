@@ -116,3 +116,20 @@ generate.df <- function(df,nrows){
   return(muestra.df)
   rm(muestra)
 }
+
+#' clean.df
+#'
+#' filters a DF for invalid values
+#'
+#' @param df specific DataFrame to filter/clean info from
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+clean.df <- function(df){
+  if (isnull(muestra.df)){
+    rm(muestra)
+  }
+}
