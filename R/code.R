@@ -115,7 +115,7 @@ clean.df <- function(df){
 #' TBD
 #'
 #' @export
-analysis.df <- function(df1){
+analysis.df <- function(){
   df1 <- get.feodo()
 
   cat("Current df size: ", object.size(df1),"\n")
