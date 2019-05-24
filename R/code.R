@@ -47,11 +47,9 @@ create.directory <- function(){
 #' TBD
 #'
 #' @export
-download.data <- function(site,destfile) {
-  create.directory()
-  destination.path <- file.path(getwd(),"data",destfile)
-  if (!file.exists(destination.path)){
-    download.file(url = site, destfile = destination.path )
+download.data <- function(site,desfile) {
+  if (!file.exists(desfile)){
+    download.file(url = site, destfile = desfile )
   }
 }
 
@@ -65,38 +63,14 @@ download.data <- function(site,destfile) {
 #' TBD
 #'
 #' @export
-get.scansio <- function(){
-  scansio.url <- "https://opendata.rapid7.com/sonar.tcp/2019-04-04-1554350684-ftp_21.csv.gz"
-  scansio.source <- file.path(getwd(), "data","scans.io.tcp21.csv")
-  scansio.file.gz <- paste(scansio.source, ".gz", sep = "")
-  download.data(site = scansio.url, destfile = scansio.file.gz)
-  R.utils::gunzip(scansio.file.gz)
-  df.tcp21 <- read.csv(scansio.source, stringsAsFactors = FALSE)
-  return(df.tcp21)
-  rm(scansio.file.gz)
+get.feodo <- function(){
+  feodo.url <- "https://feodotracker.abuse.ch/downloads/ipblocklist.csv"
+  feodo.source <- file.path(getwd(), "data","feodo.csv")
+  download.data(site = feodo.url, desfile = feodo.source)
+  df.feodo <- read.csv(file=feodo.source, header=TRUE, sep=",", skip = 8)
+  return(df.feodo)
 }
 
-#' get.maxdata
-#'
-#' Maxmind - Obtener datos en crudo (city)
-#'
-#' @return maxmin dataframe
-#'
-#' @examples
-#' TBD
-#'
-#' @export
-get.maxdata <- function(){
-  maxmind.file <- "maxmind.zip"
-  download.data(site = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip", destfile = maxmind.file)
-  zipfiles <- unzip(zipfile = maxmind.file, list = T)
-  maxmind.source <- zipfiles$Name[grep(pattern = ".*GeoLite2-City-Blocks-IPv4.csv", x = zipfiles$Name)]
-  unzip(zipfile = maxmind.file, exdir = dir.data, files = maxmind.source)
-  maxmind.source <- file.path(getwd(), "data", maxmind.source)
-  df.maxmind <- read.csv(maxmind.source, stringsAsFactors = FALSE)
-  return(df.maxmind)
-  rm(maxmind.file, zipfiles)
-}
 
 #' generate.df
 #'
@@ -114,7 +88,6 @@ get.maxdata <- function(){
 generate.df <- function(df,nrows){
   muestra.df <- df(1:nrow(),)
   return(muestra.df)
-  rm(muestra)
 }
 
 #' clean.df
@@ -129,7 +102,5 @@ generate.df <- function(df,nrows){
 #'
 #' @export
 clean.df <- function(df){
-  if (isnull(muestra.df)){
-    rm(muestra)
-  }
+    rm(df)
 }
