@@ -104,3 +104,24 @@ generate.df <- function(df,nrows){
 clean.df <- function(df){
     rm(df)
 }
+
+#' Parse botnet
+#'
+#' "main" file which downloads the file if needed
+#' and processes it for a better understanding
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+analysis.df <- function(df1){
+  df1 <- get.feodo()
+
+  cat("Current df size: ", object.size(df1),"\n")
+  cat("Current names df: ", names(df1),"\n")
+  cat("Current lenght: ", length(df1),"\n")
+  #nrow()
+  #nchar()
+}
+
