@@ -68,6 +68,7 @@ get.feodo <- function(){
   feodo.source <- file.path(getwd(), "data","feodo.csv")
   download.data(site = feodo.url, desfile = feodo.source)
   df.feodo <- read.csv(file=feodo.source, header=TRUE, sep=",", skip = 8)
+  df.feodo <- head(df.feodo,-1)
   return(df.feodo)
 }
 
