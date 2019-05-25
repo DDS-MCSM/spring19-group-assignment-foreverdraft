@@ -1,3 +1,11 @@
+#librarieeess
+library(kableExtra)
+library(XML)
+library(httr)
+library(ggplot2)
+library(dplyr)
+library(iptools)
+
 # Hello, world!
 #
 # This is an example function named 'hello'
@@ -47,11 +55,9 @@ create.directory <- function(){
 #' TBD
 #'
 #' @export
-download.data <- function(site,destfile) {
-  create.directory()
-  destination.path <- file.path(getwd(),"data",destfile)
-  if (!file.exists(destination.path)){
-    download.file(url = site, destfile = destination.path )
+download.data <- function(site,desfile) {
+  if (!file.exists(desfile)){
+    download.file(url = site, destfile = desfile )
   }
 }
 
@@ -65,38 +71,14 @@ download.data <- function(site,destfile) {
 #' TBD
 #'
 #' @export
-get.scansio <- function(){
-  scansio.url <- "https://opendata.rapid7.com/sonar.tcp/2019-04-04-1554350684-ftp_21.csv.gz"
-  scansio.source <- file.path(getwd(), "data","scans.io.tcp21.csv")
-  scansio.file.gz <- paste(scansio.source, ".gz", sep = "")
-  download.data(site = scansio.url, destfile = scansio.file.gz)
-  R.utils::gunzip(scansio.file.gz)
-  df.tcp21 <- read.csv(scansio.source, stringsAsFactors = FALSE)
-  return(df.tcp21)
-  rm(scansio.file.gz)
+get.feodo <- function(){
+  feodo.url <- "https://feodotracker.abuse.ch/downloads/ipblocklist.csv"
+  feodo.source <- file.path(getwd(), "data","feodo.csv")
+  download.data(site = feodo.url, desfile = feodo.source)
+  df.feodo <- read.csv(file=feodo.source, header=TRUE, sep=",", skip = 8)
+  return(df.feodo)
 }
 
-#' get.maxdata
-#'
-#' Maxmind - Obtener datos en crudo (city)
-#'
-#' @return maxmin dataframe
-#'
-#' @examples
-#' TBD
-#'
-#' @export
-get.maxdata <- function(){
-  maxmind.file <- "maxmind.zip"
-  download.data(site = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip", destfile = maxmind.file)
-  zipfiles <- unzip(zipfile = maxmind.file, list = T)
-  maxmind.source <- zipfiles$Name[grep(pattern = ".*GeoLite2-City-Blocks-IPv4.csv", x = zipfiles$Name)]
-  unzip(zipfile = maxmind.file, exdir = dir.data, files = maxmind.source)
-  maxmind.source <- file.path(getwd(), "data", maxmind.source)
-  df.maxmind <- read.csv(maxmind.source, stringsAsFactors = FALSE)
-  return(df.maxmind)
-  rm(maxmind.file, zipfiles)
-}
 
 #' generate.df
 #'
@@ -114,7 +96,6 @@ get.maxdata <- function(){
 generate.df <- function(df,nrows){
   muestra.df <- df(1:nrow(),)
   return(muestra.df)
-  rm(muestra)
 }
 
 #' clean.df
@@ -128,8 +109,98 @@ generate.df <- function(df,nrows){
 #' TBD
 #'
 #' @export
-clean.df <- function(df){
-  if (isnull(muestra.df)){
-    rm(muestra)
-  }
+clean.df <- function(df3){
+    df3<-df3[!is.na(df3$Malware)]
 }
+
+#' get geocodes MIGHT BE REMOVED
+#'
+#' auxiliary function to get coordinates of IP
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+get.geocode <- function(ip) {  # returns lat/long given an ip address
+  url   <- "http://www.freegeoip.net"
+  library(httr)
+  xml   <- content(GET(url,path=paste("xml",ip,sep="/")),type="text/xml")
+  xpath <- c(lat="//Latitude",long="//Longitude")
+  sapply(xpath,function(xp) as.numeric(xmlValue(xml[xp][[1]])))
+}
+
+#' extra info
+#'
+#' to output to the console a lot of shit about df
+#' investigate dataframe console
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+extrainfo.df <- function(func_df1){
+  #viewinfo(df1) if needed more info
+  cat("Type of dataset : ", str(class(func_df1)),"\n")
+  cat("Dimension(row x column) : ", dim(func_df1),"\n")
+  cat("Current lenght: ", length(func_df1),"& Object size:",object.size(func_df1),"\n")
+  cat("Types of dataset fields: Printing\n", str(sapply(func_df1,class)),"\n print done \n")
+  cat("Now let's see the values of all non-repeated fields\n")
+  #sapply(func_df1,unique)
+  cat("Structure of the dataset fields:", str(func_df1),"\n")
+  #cat("Now let's see the number of IPs for each malware\n")
+  #tapply(flags$IPs?,flags$Malware,summary)
+  table(func_df1$Malware)
+  class(func_df1$DetectedDate)
+  #View(func_df1)
+  nrow(func_df1)
+  nchar(func_df1)
+  #sample kable uncomment also first line with library
+  #kable(head(funct_df1))
+}
+
+#' Parse botnet
+#'
+#' "main" file which downloads the file if needed
+#' and processes it for a better understanding
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+analysis.df <- function(func_df0){
+  func_df0 <- get.feodo()
+  #renaming some ugly columns
+  colnames(func_df0)[colnames(func_df0)=="X..Firstseen"] <- "DetectedDate"
+  colnames(func_df0)[colnames(func_df0)=="LastOnline"] <- "LastOnlineDate"
+  #Parsing the Time field
+  func_df0$LastOnlineDate<-strptime(func_df0$LastOnlineDate,format="%Y-%m-%d")
+  func_df0$DetectedDate<-strptime(func_df0$DetectedDate,format="%Y-%m-%d %H:%M:%S")
+  #setting the pending "factor" fields as characters (malware + IP)
+  func_df0["Malware"] <- lapply(func_df0["Malware"],as.character)
+  func_df0["DstIP"] <- lapply(func_df0["DstIP"],as.character)
+  #outputs info console (usually debug purpose)
+  extrainfo.df(func_df0)
+  #calculations on the dataset
+  # my_df1_heo <- func_df0[func_df0$Malware=="Heodo"]
+  #my_df1_heo
+
+  #TO BE SOLVED localization
+  #testmaxmind<-addIPgeolocation(func_df0$DstIP)
+
+  #locs <- data.frame(t(sapply(func_df0$DstIP,get.geocode)))
+  #ggplot(locs, aes(x=long,y=lat))+
+  #  borders("world", color="grey50", fill="grey90")+
+  #  geom_point(color="red", size=3)+
+  #  labs(x="",y="")+
+  #  theme_bw() + theme(axis.text=element_blank(),axis.ticks=element_blank())+
+  #  coord_fixed()
+
+  #TO BE REMOVED tidy.risk %>% group_by(zone) %>%
+  #
+  #  summarise(total = sum(n_events),
+  #            mean = mean(n_events),
+  #            n = n())
+}
+

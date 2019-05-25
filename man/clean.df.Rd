@@ -4,7 +4,7 @@
 \alias{clean.df}
 \title{clean.df}
 \usage{
-clean.df(df)
+clean.df(df3)
 }
 \arguments{
 \item{df}{specific DataFrame to filter/clean info from}
