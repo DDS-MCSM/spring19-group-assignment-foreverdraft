@@ -4,7 +4,7 @@
 \alias{download.data}
 \title{download.data}
 \usage{
-download.data(site, destfile)
+download.data(site, desfile)
 }
 \arguments{
 \item{site}{URL to get the data from}
