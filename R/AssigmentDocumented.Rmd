@@ -28,8 +28,28 @@ fragment.only = TRUE)
 knit2html('r-knitr-markdown.Rmd')  
 **Open HTML with default OS WebBrowser**  
 browseURL('r-knitr-markdown.html')  
-```{r cars}
-summary(cars)
+```{r code}
+#' Parse botnet
+#'
+#' "main" file which downloads the file if needed
+#' and processes it for a better understanding
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+analysis.df <- function(df1){
+  df1 <- get.feodo()
+  #renaming some ugly columns
+  colnames(df1)[colnames(df1)=="X..Firstseen"] <- "DetectedDate"
+  names(df1)[1]<-"DetectedDate"
+  colnames(df1)[colnames(df1)=="LastOnline"] <- "LastOnlineDate"
+  cat("Current lenght: ", length(df1),"\n")
+  View(df1)
+  #nrow()
+  #nchar()
+}
 ```
 
 ## Including Plots

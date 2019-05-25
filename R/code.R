@@ -1,3 +1,11 @@
+#librarieeess
+library(kableExtra)
+library(XML)
+library(httr)
+library(ggplot2)
+library(dplyr)
+library(iptools)
+
 # Hello, world!
 #
 # This is an example function named 'hello'
@@ -101,8 +109,54 @@ generate.df <- function(df,nrows){
 #' TBD
 #'
 #' @export
-clean.df <- function(df){
-    rm(df)
+clean.df <- function(df3){
+    df3<-df3[!is.na(df3$Malware)]
+}
+
+#' get geocodes MIGHT BE REMOVED
+#'
+#' auxiliary function to get coordinates of IP
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+get.geocode <- function(ip) {  # returns lat/long given an ip address
+  url   <- "http://www.freegeoip.net"
+  library(httr)
+  xml   <- content(GET(url,path=paste("xml",ip,sep="/")),type="text/xml")
+  xpath <- c(lat="//Latitude",long="//Longitude")
+  sapply(xpath,function(xp) as.numeric(xmlValue(xml[xp][[1]])))
+}
+
+#' extra info
+#'
+#' to output to the console a lot of shit about df
+#' investigate dataframe console
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+extrainfo.df <- function(func_df1){
+  #viewinfo(df1) if needed more info
+  cat("Type of dataset : ", str(class(func_df1)),"\n")
+  cat("Dimension(row x column) : ", dim(func_df1),"\n")
+  cat("Current lenght: ", length(func_df1),"& Object size:",object.size(func_df1),"\n")
+  cat("Types of dataset fields: Printing\n", str(sapply(func_df1,class)),"\n print done \n")
+  cat("Now let's see the values of all non-repeated fields\n")
+  #sapply(func_df1,unique)
+  cat("Structure of the dataset fields:", str(func_df1),"\n")
+  #cat("Now let's see the number of IPs for each malware\n")
+  #tapply(flags$IPs?,flags$Malware,summary)
+  table(func_df1$Malware)
+  class(func_df1$DetectedDate)
+  #View(func_df1)
+  nrow(func_df1)
+  nchar(func_df1)
+  #sample kable uncomment also first line with library
+  #kable(head(funct_df1))
 }
 
 #' Parse botnet
@@ -115,13 +169,38 @@ clean.df <- function(df){
 #' TBD
 #'
 #' @export
-analysis.df <- function(df1){
-  df1 <- get.feodo()
+analysis.df <- function(func_df0){
+  func_df0 <- get.feodo()
+  #renaming some ugly columns
+  colnames(func_df0)[colnames(func_df0)=="X..Firstseen"] <- "DetectedDate"
+  colnames(func_df0)[colnames(func_df0)=="LastOnline"] <- "LastOnlineDate"
+  #Parsing the Time field
+  func_df0$LastOnlineDate<-strptime(func_df0$LastOnlineDate,format="%Y-%m-%d")
+  func_df0$DetectedDate<-strptime(func_df0$DetectedDate,format="%Y-%m-%d %H:%M:%S")
+  #setting the pending "factor" fields as characters (malware + IP)
+  func_df0["Malware"] <- lapply(func_df0["Malware"],as.character)
+  func_df0["DstIP"] <- lapply(func_df0["DstIP"],as.character)
+  #outputs info console (usually debug purpose)
+  extrainfo.df(func_df0)
+  #calculations on the dataset
+  # my_df1_heo <- func_df0[func_df0$Malware=="Heodo"]
+  #my_df1_heo
 
-  cat("Current df size: ", object.size(df1),"\n")
-  cat("Current names df: ", names(df1),"\n")
-  cat("Current lenght: ", length(df1),"\n")
-  #nrow()
-  #nchar()
+  #TO BE SOLVED localization
+  #testmaxmind<-addIPgeolocation(func_df0$DstIP)
+
+  #locs <- data.frame(t(sapply(func_df0$DstIP,get.geocode)))
+  #ggplot(locs, aes(x=long,y=lat))+
+  #  borders("world", color="grey50", fill="grey90")+
+  #  geom_point(color="red", size=3)+
+  #  labs(x="",y="")+
+  #  theme_bw() + theme(axis.text=element_blank(),axis.ticks=element_blank())+
+  #  coord_fixed()
+
+  #TO BE REMOVED tidy.risk %>% group_by(zone) %>%
+  #
+  #  summarise(total = sum(n_events),
+  #            mean = mean(n_events),
+  #            n = n())
 }
 
