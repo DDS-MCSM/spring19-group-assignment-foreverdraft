@@ -57,6 +57,7 @@ create.directory <- function(){
 #' @export
 download.data <- function(site,desfile) {
   if (!file.exists(desfile)){
+    create.directory()
     download.file(url = site, destfile = desfile )
   }
 }
@@ -110,7 +111,8 @@ generate.df <- function(df,nrows){
 #'
 #' @export
 clean.df <- function(df3){
-    df3<-df3[!is.na(df3$Malware)]
+    df4<-df3[!is.na(df3[1]),]
+    return(df4)
 }
 
 #' get geocodes MIGHT BE REMOVED
@@ -169,7 +171,7 @@ extrainfo.df <- function(func_df1){
 #' TBD
 #'
 #' @export
-analysis.df <- function(func_df0){
+analysis.df <- function(){
   func_df0 <- get.feodo()
   #renaming some ugly columns
   colnames(func_df0)[colnames(func_df0)=="X..Firstseen"] <- "DetectedDate"
@@ -180,6 +182,8 @@ analysis.df <- function(func_df0){
   #setting the pending "factor" fields as characters (malware + IP)
   func_df0["Malware"] <- lapply(func_df0["Malware"],as.character)
   func_df0["DstIP"] <- lapply(func_df0["DstIP"],as.character)
+  #Cleans any possible NA values
+  func_df0<-clean.df(func_df0)
   #outputs info console (usually debug purpose)
   extrainfo.df(func_df0)
   #calculations on the dataset
@@ -202,5 +206,6 @@ analysis.df <- function(func_df0){
   #  summarise(total = sum(n_events),
   #            mean = mean(n_events),
   #            n = n())
+  return(func_df0)
 }
 

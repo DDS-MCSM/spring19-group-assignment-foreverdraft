@@ -4,7 +4,7 @@
 \alias{analysis.df}
 \title{Parse botnet}
 \usage{
-analysis.df(func_df0)
+analysis.df()
 }
 \description{
 "main" file which downloads the file if needed
