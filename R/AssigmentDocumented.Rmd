@@ -5,6 +5,21 @@ date: "5/24/2019"
 output: html_document
 ---
 
+```{r load_packages, echo = FALSE, cache = TRUE}
+# Paquetes necesarios
+pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group" )
+
+# Instalar paquetes que no esten instalados
+new.pkg <- pkg[!(pkg %in% installed.packages())]
+if (length(new.pkg)) 
+{
+    install.packages(new.pkg)  
+}
+# Cargar datasets
+df.feodo <- analysis.df()
+df.maxmind <- get.maxmind()
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -60,4 +75,11 @@ You can also embed plots, for example:
 plot(pressure)
 ```
 
+## Including Map
+
+```{r map, echo=FALSE}
+geolocate(df.maxmind,df.feodo)
+ggplot(world, aes(x = slatitud, y = slongitud)) +
+  geom_polygon()
+```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

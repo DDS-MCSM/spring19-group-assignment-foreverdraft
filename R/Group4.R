@@ -130,6 +130,53 @@ get.geocode <- function(ip) {  # returns lat/long given an ip address
   sapply(xpath,function(xp) as.numeric(xmlValue(xml[xp][[1]])))
 }
 
+#' get maxmind database
+#'
+#' Database to use with geolocation function
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+get.maxmind <- function(){
+  maxmind.url <- "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip"
+  maxmind.file <- file.path(getwd(), "data", "maxmind.zip")
+  download.file(url = maxmind.url, destfile = maxmind.file)
+  zipfiles <- unzip(zipfile = maxmind.file, list = T)
+  maxmind.source <- zipfiles$Name[grep(pattern = ".*GeoLite2-City-Blocks-IPv4.csv", x = zipfiles$Name)]
+  dir.data <- file.path(getwd(), "data", maxmind.file)
+  unzip(zipfile = maxmind.file, exdir = getwd(), files = maxmind.source)
+  maxmind.source <- file.path(getwd(), maxmind.source)
+  df.maxmind <- read.csv(maxmind.source, stringsAsFactors = FALSE)
+  df.maxmind <- cbind(df.maxmind, iptools::range_boundaries(df.maxmind$network))
+  df.maxmind$rowname <- as.integer(row.names(df.maxmind))
+  rm(maxmind.file, zipfiles)
+  df.maxmind <- cbind(df.maxmind, iptools::range_boundaries(df.maxmind$network))
+  df.maxmind$rowname <- as.integer(row.names(df.maxmind))
+}
+
+geolocate <- function(df.maxmind,df.feodo){
+  # Usamos multiples cpu's para geolocalizar IPs en rangos
+  no_cores <- parallel::detectCores() - 1
+  cl <- parallel::makeCluster(no_cores)
+  parallel::clusterExport(cl, df.maxmind)
+  df.feodo$dloc <- sapply(df.feodo$DstIP,
+                          function(ip)
+                            which((ip >= df.maxmind$min_numeric) &
+                                    (ip <= df.maxmind$max_numeric)))
+  parallel::stopCluster(cl)
+  rm(cl, no_cores)
+
+  # Join and tidy data frame (source address)
+  df <- dplyr::left_join(df.feodo, df.maxmind, by = c("DstIP" = "rowname"))
+  df <- dplyr::select(df, timestamp_ts, saddr, latitude, longitude, accuracy_radius,
+                      is_anonymous_proxy, is_satellite_provider)
+  names(df) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
+                 "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
+
+}
+
 #' extra info
 #'
 #' to output to the console a lot of shit about df
@@ -169,7 +216,7 @@ extrainfo.df <- function(func_df1){
 #' TBD
 #'
 #' @export
-analysis.df <- function(func_df0){
+analysis.df <- function(){
   func_df0 <- get.feodo()
   #renaming some ugly columns
   colnames(func_df0)[colnames(func_df0)=="X..Firstseen"] <- "DetectedDate"
@@ -202,4 +249,5 @@ analysis.df <- function(func_df0){
   #  summarise(total = sum(n_events),
   #            mean = mean(n_events),
   #            n = n())
+  return(func_df0)
 }
