@@ -1,4 +1,4 @@
-Package: Group4AssignmentPackage
+Package: Group4
 Title: Daydreaming [What the Package Does (one line, title case)] 
 Version: 0.0.0.9000
 Authors@R:person("Ignasi", "Onate", email = "first.last@example.com",
