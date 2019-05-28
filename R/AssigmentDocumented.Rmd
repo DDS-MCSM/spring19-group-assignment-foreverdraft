@@ -21,80 +21,22 @@ if (length(new.pkg))
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Feodo
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.  
+En este Markdown se intenta representar el número de botnets activas. El dataset utilizado se actualiza cada 5 minutos.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:  
-cheatsheet:  
-**Required packages** 
-library(knitr)  
-library(markdown)  
-**transform the .Rmd to a markdown (.md) file.**  
-knit('r-knitr-markdown.Rmd')  
-**transform the .md to HTML format**  
-markdownToHTML("r-knitr-markdown.md",  
-"r-knitr-markdown.html",  
-fragment.only = TRUE)  
-**transform the .Rmd to HTML format**  
-knit2html('r-knitr-markdown.Rmd')  
-**Open HTML with default OS WebBrowser**  
-browseURL('r-knitr-markdown.html')  
-# ```{r code}
-# #' Parse botnet
-# #'
-# #' "main" file which downloads the file if needed
-# #' and processes it for a better understanding
-# #'
-# #'
-# #' @examples
-# #' TBD
-# #'
-# #' @export
-# analysis.df <- function(df1){
-#   df1 <- get.feodo()
-#   #renaming some ugly columns
-#   colnames(df1)[colnames(df1)=="X..Firstseen"] <- "DetectedDate"
-#   names(df1)[1]<-"DetectedDate"
-#   colnames(df1)[colnames(df1)=="LastOnline"] <- "LastOnlineDate"
-#   cat("Current lenght: ", length(df1),"\n")
-#   View(df1)
-#   #nrow()
-#   #nchar()
-# }
-# ```
+La fuente de los datos utilizados es accesible desde el siguiente enlace <https://feodotracker.abuse.ch/>.  
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
 ## Including Map
-```{r map, echo=FALSE}
+```{r map, include=FALSE, cache=TRUE}
 # Cargamos el dataset con las coordenadas de Lat/Long
 library(Group4)
 df.feo<-maxmindg4.df()
 str(df.feo)
 ```
-Representando esta informaci?n con un gr?fico de dispersi?n podemos ver que la distribuci?n se asemeja notablemente al mapamundi:
-```{r dispersion_coord, echo = FALSE, cache = TRUE, fig.align = 'center'}
-library(ggplot2)
-# Creamos ggplot con los datos de feodo
-gg <- ggplot(data=df.feo, aes(x=longitude, y=latitude)) 
-# definimos la grafica por puntos con transparencia
-gg <- gg + geom_point(size=3, color="red", alpha=1/40) 
-# Titulos de los ejes
-gg <- gg + xlab("Longitude") + ylab("Latitude")
-# aplicamos el tema simple
-gg <- gg + theme_bw() 
-# tarda un poco pq son 800.000 puntos
-print(gg)
-```
-Con esta representaci?n se puede identificar que la mayor concentraci?n de infecciones ocurren en la mayor parte de Europa, la costa este de EEUU y en menor grado en Jap?n y otros puntos del planeta.  
-A?adimos informaci?n sobre paises y sus fronteras para enriquecer el mapa.
+
+Mapa con la ubicación de las botnets.
 ```{r map_simple, echo=FALSE, cache=TRUE, fig.align='center'}
 world <- map_data("world")
 # Quitamos el continete Antarctico ya que no aporta informaci?n

@@ -158,27 +158,6 @@ get.maxmind <- function(){
   df.maxmind$rowname <- as.integer(row.names(df.maxmind))
 }
 
-geolocate <- function(df.maxmind,df.feodo){
-  # Usamos multiples cpu's para geolocalizar IPs en rangos
-  no_cores <- parallel::detectCores() - 1
-  cl <- parallel::makeCluster(no_cores)
-  parallel::clusterExport(cl, df.maxmind)
-  df.feodo$dloc <- sapply(df.feodo$DstIP,
-                          function(ip)
-                            which((ip >= df.maxmind$min_numeric) &
-                                    (ip <= df.maxmind$max_numeric)))
-  parallel::stopCluster(cl)
-  rm(cl, no_cores)
-
-  # Join and tidy data frame (source address)
-  df <- dplyr::left_join(df.feodo, df.maxmind, by = c("DstIP" = "rowname"))
-  df <- dplyr::select(df, timestamp_ts, saddr, latitude, longitude, accuracy_radius,
-                      is_anonymous_proxy, is_satellite_provider)
-  names(df) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
-                 "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
-
-}
-
 #' extra info
 #'
 #' to output to the console a lot of shit about df
