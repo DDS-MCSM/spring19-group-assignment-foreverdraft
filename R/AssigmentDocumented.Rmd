@@ -7,7 +7,7 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj" )
+pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal" )
 
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
@@ -32,10 +32,11 @@ La fuente de los datos utilizados es accesible desde el siguiente enlace <https:
 ```{r map, include=FALSE, cache=TRUE}
 # Cargamos el dataset con las coordenadas de Lat/Long
 library(Group4)
+
+library(leaflet)
 df.feo<-maxmindg4.df()
 str(df.feo)
 ```
-
 Mapa con la ubicación de las botnets.
 ```{r map_simple, echo=FALSE, cache=TRUE, fig.align='center'}
 world <- map_data("world")
@@ -57,5 +58,15 @@ gg <- gg + theme(text=element_blank(),
                  panel.background=element_rect(color="gray50",
                                                fill="white"))
 print(gg)
+
+
+```
+```{r mapa, include=FALSE}
+
+# Basic choropleth with leaflet?
+leaflet(world_spdf) %>% 
+  addTiles()  %>% 
+  setView( lat=10, lng=0 , zoom=2) %>% addCircles(lng = ~df.feo$longitude, lat = ~df.feo$latitude)
+
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
