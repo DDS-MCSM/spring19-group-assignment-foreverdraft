@@ -7,7 +7,7 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group" )
+pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj" )
 
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
@@ -15,9 +15,6 @@ if (length(new.pkg))
 {
     install.packages(new.pkg)  
 }
-# Cargar datasets
-df.feodo <- analysis.df()
-df.maxmind <- get.maxmind()
 ```
 
 ```{r setup, include=FALSE}
@@ -43,29 +40,29 @@ fragment.only = TRUE)
 knit2html('r-knitr-markdown.Rmd')  
 **Open HTML with default OS WebBrowser**  
 browseURL('r-knitr-markdown.html')  
-```{r code}
-#' Parse botnet
-#'
-#' "main" file which downloads the file if needed
-#' and processes it for a better understanding
-#'
-#'
-#' @examples
-#' TBD
-#'
-#' @export
-analysis.df <- function(df1){
-  df1 <- get.feodo()
-  #renaming some ugly columns
-  colnames(df1)[colnames(df1)=="X..Firstseen"] <- "DetectedDate"
-  names(df1)[1]<-"DetectedDate"
-  colnames(df1)[colnames(df1)=="LastOnline"] <- "LastOnlineDate"
-  cat("Current lenght: ", length(df1),"\n")
-  View(df1)
-  #nrow()
-  #nchar()
-}
-```
+# ```{r code}
+# #' Parse botnet
+# #'
+# #' "main" file which downloads the file if needed
+# #' and processes it for a better understanding
+# #'
+# #'
+# #' @examples
+# #' TBD
+# #'
+# #' @export
+# analysis.df <- function(df1){
+#   df1 <- get.feodo()
+#   #renaming some ugly columns
+#   colnames(df1)[colnames(df1)=="X..Firstseen"] <- "DetectedDate"
+#   names(df1)[1]<-"DetectedDate"
+#   colnames(df1)[colnames(df1)=="LastOnline"] <- "LastOnlineDate"
+#   cat("Current lenght: ", length(df1),"\n")
+#   View(df1)
+#   #nrow()
+#   #nchar()
+# }
+# ```
 
 ## Including Plots
 
@@ -76,10 +73,47 @@ plot(pressure)
 ```
 
 ## Including Map
-
 ```{r map, echo=FALSE}
-geolocate(df.maxmind,df.feodo)
-ggplot(world, aes(x = slatitud, y = slongitud)) +
-  geom_polygon()
+# Cargamos el dataset con las coordenadas de Lat/Long
+library(Group4)
+df.feo<-maxmindg4.df()
+str(df.feo)
+```
+Representando esta informaci?n con un gr?fico de dispersi?n podemos ver que la distribuci?n se asemeja notablemente al mapamundi:
+```{r dispersion_coord, echo = FALSE, cache = TRUE, fig.align = 'center'}
+library(ggplot2)
+# Creamos ggplot con los datos de feodo
+gg <- ggplot(data=df.feo, aes(x=longitude, y=latitude)) 
+# definimos la grafica por puntos con transparencia
+gg <- gg + geom_point(size=3, color="red", alpha=1/40) 
+# Titulos de los ejes
+gg <- gg + xlab("Longitude") + ylab("Latitude")
+# aplicamos el tema simple
+gg <- gg + theme_bw() 
+# tarda un poco pq son 800.000 puntos
+print(gg)
+```
+Con esta representaci?n se puede identificar que la mayor concentraci?n de infecciones ocurren en la mayor parte de Europa, la costa este de EEUU y en menor grado en Jap?n y otros puntos del planeta.  
+A?adimos informaci?n sobre paises y sus fronteras para enriquecer el mapa.
+```{r map_simple, echo=FALSE, cache=TRUE, fig.align='center'}
+world <- map_data("world")
+# Quitamos el continete Antarctico ya que no aporta informaci?n
+# No es nada personal con los pinguinos...
+world <- subset(world, world$region!="Antarctica")
+
+gg <- ggplot(data=world, aes(x=long, y=lat))
+gg <- gg + geom_path(aes(group=group), colour="gray70")
+# La definici?n de la proyeccion representa la "curvatura" del mapa
+gg <- gg + coord_map("mercator", xlim=c(-200, 200))
+# A?adimos una capa al mapa con la informaci?n de Zero Access
+gg <- gg + geom_point(data=df.feo, aes(longitude, latitude), 
+                      colour="red", alpha=1/40, size=5)
+# Eliminamos texto y le damos un poco de color
+gg <- gg + theme(text=element_blank(), 
+                 axis.ticks=element_blank(),
+                 panel.grid=element_blank(),
+                 panel.background=element_rect(color="gray50",
+                                               fill="white"))
+print(gg)
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

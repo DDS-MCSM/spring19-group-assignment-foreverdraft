@@ -336,6 +336,7 @@ maxmindg4.df <- function(){
 
   # Summary
   fini - tini
+  return(df2)
   summary(df2)
 }
 
