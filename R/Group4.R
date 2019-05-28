@@ -208,6 +208,137 @@ extrainfo.df <- function(func_df1){
   #kable(head(funct_df1))
 }
 
+
+#' maxmind G4 adaptation
+#'
+#' same code adapted for G4, parsing IPs to obtain lat and long
+#'
+#'
+#'
+#' @examples
+#' TBD
+#'
+#' @export
+maxmindg4.df <- function(){
+  # Dataframes used
+  #  df2.tcp21		scans.io csv - hosts and sites
+  #  df2.maxmind 	maxmind csv - IP lat long
+  #  df2.scans		subset df.tcp21	- muestra x samples de Ips
+  #  df2			df.scans+df.maxmind - with all positioning info
+  #  df2.dst		destination IP (extracted from df) (will be removed)
+
+
+  # Default parameters
+  verbose2 <- TRUE
+  seed2 <- 666
+  scansio.url <- "https://opendata.rapid7.com/sonar.tcp/2019-04-04-1554350684-ftp_21.csv.gz"
+  scope2 <- 500
+  output2.file <- "geoftps.rds"
+
+  # Initial Setup
+  if (verbose2) print("[*] Initial setup")
+  tini <- Sys.time()
+  set.seed(666)
+  dir.data <- file.path(getwd(), "data")
+  if (!dir.exists(dir.data)) {
+    if (verbose2) print("[*] Create data directory")
+    dir.create(dir.data)
+  }
+
+  ##NOT NEEDED
+  # scans.io - Obtener datos en crudo
+  #if (verbose2) print("[*] Read RAW data from scans.io")
+  #scansio.source <- file.path(getwd(), "data","scans.io.tcp21.csv")
+  #scansio.file.gz <- paste(scansio.source, ".gz", sep = "")
+  #download.file(url = scansio.url, destfile = scansio.file.gz)
+  #if(file.exists(scansio.source))
+  #  rm(scansio.source)
+  #R.utils::gunzip(scansio.file.gz)
+  #rm(scansio.file.gz)
+  #df2.tcp21 <- read.csv(scansio.source, stringsAsFactors = FALSE)
+
+  if (verbose2) print("[*] Read data from source")
+  my_dfsc1 <- analysis.df()
+
+  # Maxmind - Obtener datos en crudo (city)
+  if (verbose2) print("[*] Read RAW data from MaxMind")
+  maxmind.url <- "https://geolite.maxmind.com/download/geoip/database/GeoLite2-City-CSV.zip"
+  maxmind.file <- file.path(getwd(), "data", "maxmind.zip")
+  download.file(url = maxmind.url, destfile = maxmind.file)
+  zipfiles <- unzip(zipfile = maxmind.file, list = T)
+  maxmind.source <- zipfiles$Name[grep(pattern = ".*GeoLite2-City-Blocks-IPv4.csv", x = zipfiles$Name)]
+  unzip(zipfile = maxmind.file, exdir = dir.data, files = maxmind.source)
+  maxmind.source <- file.path(getwd(), "data", maxmind.source)
+  df2.maxmind <- read.csv(maxmind.source, stringsAsFactors = FALSE)
+  rm(maxmind.file, zipfiles)
+
+  # Seleccionamos una muestra de scans
+  if (verbose2) print("[*] Subseting scans data set")
+  my_dfsc1$DstIP <- iptools::ip_to_numeric(my_dfsc1$DstIP)
+  #df2.tcp21$daddr.num <- iptools::ip_to_numeric(df2.tcp21$daddr)
+  #muestra <- sample(1:nrow(df2.tcp21), scope2)
+  #df2.scans <- df2.tcp21[muestra,]
+  df2.scans <- my_dfsc1 #ALL scope
+  #rm(muestra)
+
+  # Para geolocalizar una IP en un rango comprobaremos si está entre la primera
+  # y la ultima ip de cada rango en MaxMind.
+
+  # Maxmind elegante
+  if (verbose2) print("[*] Expanding MaxMind network ranges")
+  df2.maxmind <- cbind(df2.maxmind, iptools::range_boundaries(df2.maxmind$network))
+  df2.maxmind$rowname <- as.integer(row.names(df2.maxmind))
+
+  # Usamos multiples cpu's para geolocalizar IPs en rangos
+  if (verbose2) print("[*] Foreach IP (source and destination) identify network range using parallel computing")
+  #no_cores <- parallel::detectCores() - 1
+  #cl <- parallel::makeCluster(no_cores)
+  #parallel::clusterExport(cl, "df2.maxmind")
+  df2.scans$sloc <- sapply(df2.scans$DstIP,
+                           function(ip)
+                             which((ip >= df2.maxmind$min_numeric) &
+                                     (ip <= df2.maxmind$max_numeric)))
+  #df2.scans$dloc <- sapply(df2.scans$daddr.num,
+  #                         function(ip)
+  #                           which((ip >= df2.maxmind$min_numeric) &
+  #                                   (ip <= df2.maxmind$max_numeric)))
+  #parallel::stopCluster(cl)
+  #rm(cl, no_cores)
+
+  # Join and tidy data frame (source address)
+  if (verbose2) print("[*] Joining source IP's with geolocation data")
+  df2 <- dplyr::left_join(df2.scans, df2.maxmind, by = c("sloc" = "rowname"))
+  df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware,
+                       latitude, longitude, is_anonymous_proxy, is_satellite_provider)
+  #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
+  #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
+  #df2 <- dplyr::select(df2, timestamp_ts, saddr, latitude, longitude, accuracy_radius,
+  #                     is_anonymous_proxy, is_satellite_provider)
+  #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
+  #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
+
+  # Join and tidy data frame (destination address)
+  #if (verbose2) print("[*] Joining destination IP's with geolocation data")
+  #suppressMessages(library(dplyr))
+  #df2.dst <- df2.scans %>%
+  #  left_join(df2.maxmind, by = c("dloc" = "rowname")) %>%
+  #  select(daddr, latitude, longitude)
+  #names(df2.dst) <- c("daddr", "dlatitude", "dlongitude")
+  #df2 <- dplyr::bind_cols(df2, df2.dst)
+  #rm(df2.dst, df2.scans)
+
+  # Set categoric variables as factors
+  if (verbose2) print("[*] Tidy data and save it")
+  df2$is_anonymous_proxy <- as.factor(df2$is_anonymous_proxy)
+  df2$is_satellite_provider <- as.factor(df2$is_satellite_provider)
+  saveRDS(object = df2, file = file.path(getwd(), "data", output2.file))
+  fini <- Sys.time()
+
+  # Summary
+  fini - tini
+  summary(df2)
+}
+
 #' Parse botnet
 #'
 #' "main" file which downloads the file if needed
@@ -226,6 +357,9 @@ analysis.df <- function(){
   #Parsing the Time field
   func_df0$LastOnlineDate<-strptime(func_df0$LastOnlineDate,format="%Y-%m-%d")
   func_df0$DetectedDate<-strptime(func_df0$DetectedDate,format="%Y-%m-%d %H:%M:%S")
+  #format date
+  func_df0["DetectedDate"] <- lapply(func_df0["DetectedDate"],as.POSIXct)
+  func_df0["LastOnlineDate"] <- lapply(func_df0["LastOnlineDate"],as.POSIXct)
   #setting the pending "factor" fields as characters (malware + IP)
   func_df0["Malware"] <- lapply(func_df0["Malware"],as.character)
   func_df0["DstIP"] <- lapply(func_df0["DstIP"],as.character)
