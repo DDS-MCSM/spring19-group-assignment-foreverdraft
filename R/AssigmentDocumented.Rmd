@@ -7,14 +7,26 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal" )
-
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal" )
+ 
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
 if (length(new.pkg)) 
 {
-    install.packages(new.pkg)  
+     install.packages(new.pkg)  
 }
+
+library(ggplot2)
+library(scales)
+library(maptools)
+library(sp)
+library(maps)
+library(grid)
+library(Group4)
+library(mapproj)
+library(rgdal)
+library(dplyr)
+
 ```
 
 ```{r setup, include=FALSE}
@@ -61,12 +73,11 @@ print(gg)
 
 
 ```
+
 ```{r mapa, include=FALSE}
-
 # Basic choropleth with leaflet?
-leaflet(world_spdf) %>% 
-  addTiles()  %>% 
-  setView( lat=10, lng=0 , zoom=2) %>% addCircles(lng = ~df.feo$longitude, lat = ~df.feo$latitude)
-
+leaflet(df.feo) %>%
+addTiles()  %>%
+setView( lat=10, lng=0 , zoom=2) %>% addCircles(lng = ~longitude, lat = ~latitude)
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

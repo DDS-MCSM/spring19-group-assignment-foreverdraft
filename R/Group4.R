@@ -62,11 +62,11 @@ download.data <- function(site,desfile) {
   }
 }
 
-#' get.scansioscans.io
+#' get.feodo
 #'
 #' Obtener datos en crudo
 #'
-#' @return scansio dataframe
+#' @return feodo dataframe
 #'
 #' @examples
 #' TBD
