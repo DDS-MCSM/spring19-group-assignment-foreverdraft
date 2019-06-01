@@ -7,11 +7,11 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj")
- 
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal","leaflet","rworldmap")
+
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
-if (length(new.pkg)) 
+if (length(new.pkg))
 {
      install.packages(new.pkg)  
 }
@@ -25,6 +25,8 @@ library(grid)
 library(Group4)
 library(mapproj)
 library(dplyr)
+library(leaflet)
+library(rworldmap)
 
 ```
 
@@ -42,10 +44,11 @@ La fuente de los datos utilizados es accesible desde el siguiente enlace <https:
 ## Including Map
 ```{r map, include=FALSE, cache=TRUE}
 # Cargamos el dataset con las coordenadas de Lat/Long
-library(Group4)
-
-library(leaflet)
 df.feo<-maxmindg4.df()
+```
+
+```{r display, include=FALSE}
+# Mostrem el dataset obtingut
 str(df.feo)
 ```
 Mapa con la ubicación de las botnets.
@@ -60,10 +63,10 @@ gg <- gg + geom_path(aes(group=group), colour="gray70")
 # La definici?n de la proyeccion representa la "curvatura" del mapa
 gg <- gg + coord_map("mercator", xlim=c(-200, 200))
 # A?adimos una capa al mapa con la informaci?n de Zero Access
-gg <- gg + geom_point(data=df.feo, aes(longitude, latitude), 
+gg <- gg + geom_point(data=df.feo, aes(longitude, latitude),
                       colour="red", alpha=1/40, size=5)
 # Eliminamos texto y le damos un poco de color
-gg <- gg + theme(text=element_blank(), 
+gg <- gg + theme(text=element_blank(),
                  axis.ticks=element_blank(),
                  panel.grid=element_blank(),
                  panel.background=element_rect(color="gray50",
@@ -73,7 +76,7 @@ print(gg)
 
 ```
 
-```{r mapa, include=FALSE}
+```{r mapa, include=FALSE, cache=TRUE}
 # Basic choropleth with leaflet?
 leaflet(df.feo) %>%
 addTiles()  %>%

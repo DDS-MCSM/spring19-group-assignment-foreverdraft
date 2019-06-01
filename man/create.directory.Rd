@@ -10,7 +10,7 @@ create.directory()
 None
 }
 \description{
-create Directory?
+This functions creates the repository directory
 }
 \examples{
 TBD

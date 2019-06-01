@@ -7,7 +7,7 @@
 extrainfo.df(func_df1)
 }
 \description{
-to output to the console a lot of shit about df
+to output to the console a lot of info about df
 investigate dataframe console
 }
 \examples{
