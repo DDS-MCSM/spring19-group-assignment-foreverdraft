@@ -6,6 +6,7 @@ library(ggplot2)
 library(dplyr)
 library(iptools)
 library(chron)
+library(rgeolocate)
 
 # Hello, world!
 #
@@ -288,7 +289,8 @@ maxmindg4.df <- function(){
   # Join and tidy data frame (source address)
   if (verbose2) print("[*] Joining source IP's with geolocation data")
   df2 <- dplyr::left_join(df2.scans, df2.maxmind, by = c("sloc" = "rowname"))
-  df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware, DetectedWeekday,
+  df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware,
+                       DetectedWeekday, country_name,
                        latitude, longitude, is_anonymous_proxy, is_satellite_provider)
   #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
   #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
@@ -346,31 +348,17 @@ analysis.df <- function(){
   func_df0["DstIP"] <- lapply(func_df0["DstIP"],as.character)
   #Cleans any possible NA values
   func_df0<-clean.df(func_df0)
-  #outputs info console (usually debug purpose)
 
-  extrainfo.df(func_df0)
   #adding weekdays as a column
   func_df0<-cbind(func_df0,weekdays(func_df0$DetectedDate))
   colnames(func_df0)[colnames(func_df0)=="weekdays(func_df0$DetectedDate)"] <- "DetectedWeekday"
-  #calculations on the dataset
-  # my_df1_heo <- func_df0[func_df0$Malware=="Heodo"]
-  #my_df1_heo
 
-  #TO BE SOLVED localization
-  #testmaxmind<-addIPgeolocation(func_df0$DstIP)
+  #loading countries as extra column
+  filecountry <- system.file("extdata","GeoLite2-Country.mmdb", package = "rgeolocate")
+  resultscountry <- rgeolocate::maxmind(func_df0$DstIP, filecountry, c("continent_name", "country_code", "country_name"))
+  func_df0<-cbind(func_df0,resultscountry)
 
-  #locs <- data.frame(t(sapply(func_df0$DstIP,get.geocode)))
-  #ggplot(locs, aes(x=long,y=lat))+
-  #  borders("world", color="grey50", fill="grey90")+
-  #  geom_point(color="red", size=3)+
-  #  labs(x="",y="")+
-  #  theme_bw() + theme(axis.text=element_blank(),axis.ticks=element_blank())+
-  #  coord_fixed()
-
-  #TO BE REMOVED tidy.risk %>% group_by(zone) %>%
-  #
-  #  summarise(total = sum(n_events),
-  #            mean = mean(n_events),
-  #            n = n())
+  #outputs info console (usually debug purpose)
+  extrainfo.df(func_df0)
   return(func_df0)
 }
