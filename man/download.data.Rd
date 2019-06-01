@@ -15,7 +15,7 @@ download.data(site, desfile)
 None
 }
 \description{
-Maxmind - Downloads the requested data
+Downloads the requested data
 }
 \examples{
 TBD

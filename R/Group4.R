@@ -27,7 +27,7 @@ hello <- function() {
 
 #' create.directory
 #'
-#' create Directory?
+#' @description This functions creates the repository directory
 #'
 #' @return None
 #'
@@ -44,7 +44,7 @@ create.directory <- function(){
 
 #' download.data
 #'
-#' Maxmind - Downloads the requested data
+#' @description Downloads the requested data
 #'
 #' @param site URL to get the data from
 #' @param destfile local path to save downloaded data
@@ -64,7 +64,7 @@ download.data <- function(site,desfile) {
 
 #' get.feodo
 #'
-#' Obtener datos en crudo
+#' @description Download csv from Feodo botnet source.
 #'
 #' @return feodo dataframe
 #'
@@ -83,7 +83,7 @@ get.feodo <- function(){
 
 #' generate.df
 #'
-#' Returns a DF with first n rows.
+#' @description Returns a DF with first n rows.
 #'
 #' @param df specific DataFrame to extract info from
 #' @param n number of rows to extract from the data frame to return
@@ -101,7 +101,7 @@ generate.df <- function(df,nrows){
 
 #' clean.df
 #'
-#' filters a DF for invalid values
+#' @description filters a DF for invalid values
 #'
 #' @param df specific DataFrame to filter/clean info from
 #'
@@ -115,26 +115,10 @@ clean.df <- function(df3){
     return(df4)
 }
 
-#' get geocodes MIGHT BE REMOVED
-#'
-#' auxiliary function to get coordinates of IP
-#'
-#'
-#' @examples
-#' TBD
-#'
-#' @export
-get.geocode <- function(ip) {  # returns lat/long given an ip address
-  url   <- "http://www.freegeoip.net"
-  library(httr)
-  xml   <- content(GET(url,path=paste("xml",ip,sep="/")),type="text/xml")
-  xpath <- c(lat="//Latitude",long="//Longitude")
-  sapply(xpath,function(xp) as.numeric(xmlValue(xml[xp][[1]])))
-}
 
 #' get maxmind database
 #'
-#' Database to use with geolocation function
+#' @description Database to use with geolocation function
 #'
 #'
 #' @examples
@@ -160,7 +144,7 @@ get.maxmind <- function(){
 
 #' extra info
 #'
-#' to output to the console a lot of shit about df
+#' @description to output to the console a lot of info about df
 #' investigate dataframe console
 #'
 #' @examples
@@ -190,7 +174,7 @@ extrainfo.df <- function(func_df1){
 
 #' maxmind G4 adaptation
 #'
-#' same code adapted for G4, parsing IPs to obtain lat and long
+#' @description same code adapted for G4, parsing IPs to obtain lat and long
 #'
 #'
 #'
@@ -200,7 +184,6 @@ extrainfo.df <- function(func_df1){
 #' @export
 maxmindg4.df <- function(){
   # Dataframes used
-  #  df2.tcp21		scans.io csv - hosts and sites
   #  df2.maxmind 	maxmind csv - IP lat long
   #  df2.scans		subset df.tcp21	- muestra x samples de Ips
   #  df2			df.scans+df.maxmind - with all positioning info
@@ -224,18 +207,6 @@ maxmindg4.df <- function(){
     dir.create(dir.data)
   }
 
-  ##NOT NEEDED
-  # scans.io - Obtener datos en crudo
-  #if (verbose2) print("[*] Read RAW data from scans.io")
-  #scansio.source <- file.path(getwd(), "data","scans.io.tcp21.csv")
-  #scansio.file.gz <- paste(scansio.source, ".gz", sep = "")
-  #download.file(url = scansio.url, destfile = scansio.file.gz)
-  #if(file.exists(scansio.source))
-  #  rm(scansio.source)
-  #R.utils::gunzip(scansio.file.gz)
-  #rm(scansio.file.gz)
-  #df2.tcp21 <- read.csv(scansio.source, stringsAsFactors = FALSE)
-
   if (verbose2) print("[*] Read data from source")
   my_dfsc1 <- analysis.df()
 
@@ -254,11 +225,7 @@ maxmindg4.df <- function(){
   # Seleccionamos una muestra de scans
   if (verbose2) print("[*] Subseting scans data set")
   my_dfsc1$DstIP <- iptools::ip_to_numeric(my_dfsc1$DstIP)
-  #df2.tcp21$daddr.num <- iptools::ip_to_numeric(df2.tcp21$daddr)
-  #muestra <- sample(1:nrow(df2.tcp21), scope2)
-  #df2.scans <- df2.tcp21[muestra,]
   df2.scans <- my_dfsc1 #ALL scope
-  #rm(muestra)
 
   # Para geolocalizar una IP en un rango comprobaremos si está entre la primera
   # y la ultima ip de cada rango en MaxMind.
@@ -277,34 +244,12 @@ maxmindg4.df <- function(){
                            function(ip)
                              which((ip >= df2.maxmind$min_numeric) &
                                      (ip <= df2.maxmind$max_numeric)))
-  #df2.scans$dloc <- sapply(df2.scans$daddr.num,
-  #                         function(ip)
-  #                           which((ip >= df2.maxmind$min_numeric) &
-  #                                   (ip <= df2.maxmind$max_numeric)))
-  #parallel::stopCluster(cl)
-  #rm(cl, no_cores)
 
   # Join and tidy data frame (source address)
   if (verbose2) print("[*] Joining source IP's with geolocation data")
   df2 <- dplyr::left_join(df2.scans, df2.maxmind, by = c("sloc" = "rowname"))
   df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware,
                        latitude, longitude, is_anonymous_proxy, is_satellite_provider)
-  #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
-  #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
-  #df2 <- dplyr::select(df2, timestamp_ts, saddr, latitude, longitude, accuracy_radius,
-  #                     is_anonymous_proxy, is_satellite_provider)
-  #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
-  #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
-
-  # Join and tidy data frame (destination address)
-  #if (verbose2) print("[*] Joining destination IP's with geolocation data")
-  #suppressMessages(library(dplyr))
-  #df2.dst <- df2.scans %>%
-  #  left_join(df2.maxmind, by = c("dloc" = "rowname")) %>%
-  #  select(daddr, latitude, longitude)
-  #names(df2.dst) <- c("daddr", "dlatitude", "dlongitude")
-  #df2 <- dplyr::bind_cols(df2, df2.dst)
-  #rm(df2.dst, df2.scans)
 
   # Set categoric variables as factors
   if (verbose2) print("[*] Tidy data and save it")
@@ -321,7 +266,7 @@ maxmindg4.df <- function(){
 
 #' Parse botnet
 #'
-#' "main" file which downloads the file if needed
+#' @description "main" file which downloads the file if needed
 #' and processes it for a better understanding
 #'
 #'
@@ -347,9 +292,6 @@ analysis.df <- function(){
   func_df0<-clean.df(func_df0)
   #outputs info console (usually debug purpose)
   extrainfo.df(func_df0)
-  #calculations on the dataset
-  # my_df1_heo <- func_df0[func_df0$Malware=="Heodo"]
-  #my_df1_heo
 
   #TO BE SOLVED localization
   #testmaxmind<-addIPgeolocation(func_df0$DstIP)
