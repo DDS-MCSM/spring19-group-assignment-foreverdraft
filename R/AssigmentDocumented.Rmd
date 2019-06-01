@@ -7,7 +7,7 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal" )
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj")
  
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
@@ -24,7 +24,6 @@ library(maps)
 library(grid)
 library(Group4)
 library(mapproj)
-library(rgdal)
 library(dplyr)
 
 ```
