@@ -5,6 +5,7 @@ library(httr)
 library(ggplot2)
 library(dplyr)
 library(iptools)
+library(chron)
 
 # Hello, world!
 #
@@ -308,7 +309,7 @@ maxmindg4.df <- function(){
   # Join and tidy data frame (source address)
   if (verbose2) print("[*] Joining source IP's with geolocation data")
   df2 <- dplyr::left_join(df2.scans, df2.maxmind, by = c("sloc" = "rowname"))
-  df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware,
+  df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware, DetectedWeekday,
                        latitude, longitude, is_anonymous_proxy, is_satellite_provider)
   #names(df2) <- c("timestamp_ts", "saddr", "slatitude", "slongitude",
   #                "accuracy_radius", "is_anonymous_proxy", "is_satellite_provider")
@@ -367,7 +368,11 @@ analysis.df <- function(){
   #Cleans any possible NA values
   func_df0<-clean.df(func_df0)
   #outputs info console (usually debug purpose)
+
   extrainfo.df(func_df0)
+  #adding weekdays as a column
+  func_df0<-cbind(func_df0,weekdays(func_df0$DetectedDate))
+  colnames(func_df0)[colnames(func_df0)=="weekdays(func_df0$DetectedDate)"] <- "DetectedWeekday"
   #calculations on the dataset
   # my_df1_heo <- func_df0[func_df0$Malware=="Heodo"]
   #my_df1_heo
