@@ -7,5 +7,6 @@ maps
 Group4
 mapproj
 rgdal
-leaflet
 dplyr
+leaflet
+rworldmap

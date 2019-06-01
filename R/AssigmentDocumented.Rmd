@@ -7,7 +7,7 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal" )
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal","leaflet","rworldmap")
  
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
@@ -26,6 +26,8 @@ library(Group4)
 library(mapproj)
 library(rgdal)
 library(dplyr)
+library(leaflet)
+library(rworldmap)
 
 ```
 
@@ -43,10 +45,11 @@ La fuente de los datos utilizados es accesible desde el siguiente enlace <https:
 ## Including Map
 ```{r map, include=FALSE, cache=TRUE}
 # Cargamos el dataset con las coordenadas de Lat/Long
-library(Group4)
-
-library(leaflet)
 df.feo<-maxmindg4.df()
+```
+
+```{r display, include=FALSE}
+# Mostrem el dataset obtingut
 str(df.feo)
 ```
 Mapa con la ubicación de las botnets.
@@ -74,7 +77,7 @@ print(gg)
 
 ```
 
-```{r mapa, include=FALSE}
+```{r mapa, include=FALSE, cache=TRUE}
 # Basic choropleth with leaflet?
 leaflet(df.feo) %>%
 addTiles()  %>%
