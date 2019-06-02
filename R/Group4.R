@@ -251,7 +251,7 @@ maxmindg4.df <- function(){
   if (verbose2) print("[*] Joining source IP's with geolocation data")
   df2 <- dplyr::left_join(df2.scans, df2.maxmind, by = c("sloc" = "rowname"))
   df2 <- dplyr::select(df2, DetectedDate, DstIP, DstPort, LastOnlineDate, Malware,
-                       DetectedWeekday, country_name,
+                       DetectedWeekday, country_name, continent_name,
                        latitude, longitude, is_anonymous_proxy, is_satellite_provider)
 
   # Set categoric variables as factors

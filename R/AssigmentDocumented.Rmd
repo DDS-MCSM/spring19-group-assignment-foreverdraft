@@ -7,7 +7,8 @@ output: html_document
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","rgdal","leaflet","rworldmap")
+#pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", #"Group4","mapproj","leaflet","rworldmap","choroplethr")
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","leaflet","rworldmap")
 
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
@@ -26,6 +27,7 @@ require(Group4)
 require(mapproj)
 require(dplyr)
 require(leaflet)
+#require(choroplethr)
 ```
 
 ```{r setup, include=FALSE}
@@ -72,9 +74,33 @@ print(gg)
 ```
 
 ```{r mapa, include=TRUE}
+library(maps)
+library(dplyr)
+library(leaflet)
+library(Group4)
+library(ggplot2)
+if(!file.exists("df.feo")) df.feo<-maxmindg4.df()
 # Basic choropleth with leaflet?
 leaflet(df.feo) %>%
 addTiles()  %>%
 setView( lat=10, lng=0 , zoom=2) %>% addCircles(lng = ~longitude, lat = ~latitude)
+#basic other map
+worldleafmap<-map("world",fill=TRUE,plot=FALSE,wrap=c(-180,180,NA))
+worldmap<-leaflet(worldleafmap) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10,alpha=NULL),stroke=FALSE)
+worldmap %>% addCircles(lng=df.feo$longitude,lat=df.feo$latitude,radius = 50, color = '#ff0000')
+#distribution of bot type
+barplot(height = table(df.feo$Malware),col = "red",main = "Botnet type distribution")
+#detected and last online dates graph
+#hist(x = df.feo$DetectedDate, breaks = 10, col = "green",main = "detected date distribution")
+qplot(x = df.feo$DetectedDate,geom = "density",colour = I("green"))
+#hist(x = df.feo$LastOnlineDate, breaks = 10, col = "blue",main = "Last online by date")
+qplot(x = df.feo$LastOnlineDate,geom = "density",colour = I("blue"))
+#detected weekday
+barplot(height = table(df.feo$DetectedWeekday),col = "orange",main = "Botnet type distribution")
+#exaustive weekday and country name data
+g <- ggplot(df.feo, aes(df.feo$DetectedWeekday, df.feo$continent_name, color = df.feo$Malware))
+g + geom_count() + labs(title="complete continent & weekday data") + xlab("weekday") +
+ylab("Continent Name")
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
