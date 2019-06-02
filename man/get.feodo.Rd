@@ -2,15 +2,15 @@
 % Please edit documentation in R/Group4.R
 \name{get.feodo}
 \alias{get.feodo}
-\title{get.scansioscans.io}
+\title{get.feodo}
 \usage{
 get.feodo()
 }
 \value{
-scansio dataframe
+feodo dataframe
 }
 \description{
-Obtener datos en crudo
+Download csv from Feodo botnet source.
 }
 \examples{
 TBD

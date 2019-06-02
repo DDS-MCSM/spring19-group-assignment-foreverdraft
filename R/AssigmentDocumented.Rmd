@@ -2,99 +2,56 @@
 title: "AssigmentDocumented"
 author: "Group4"
 date: "5/24/2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
 # Paquetes necesarios
-pkg <- c("ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj" )
+#pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", #"Group4","mapproj","leaflet","rworldmap","choroplethr")
+pkg <- c("dplyr","ggplot2", "scales", "maptools", "sp", "maps", "grid", "Group4","mapproj","leaflet","rworldmap")
 
 # Instalar paquetes que no esten instalados
 new.pkg <- pkg[!(pkg %in% installed.packages())]
-if (length(new.pkg)) 
+if (length(new.pkg))
 {
-    install.packages(new.pkg)  
+     install.packages(new.pkg)  
 }
+
+require(ggplot2)
+require(scales)
+require(maptools)
+require(sp)
+require(maps)
+require(grid)
+require(Group4)
+require(mapproj)
+require(dplyr)
+require(leaflet)
+#require(choroplethr)
 ```
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Feodo
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.  
+En este Markdown se intenta representar el número de botnets activas. El dataset utilizado se actualiza cada 5 minutos.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:  
-cheatsheet:  
-**Required packages** 
-library(knitr)  
-library(markdown)  
-**transform the .Rmd to a markdown (.md) file.**  
-knit('r-knitr-markdown.Rmd')  
-**transform the .md to HTML format**  
-markdownToHTML("r-knitr-markdown.md",  
-"r-knitr-markdown.html",  
-fragment.only = TRUE)  
-**transform the .Rmd to HTML format**  
-knit2html('r-knitr-markdown.Rmd')  
-**Open HTML with default OS WebBrowser**  
-browseURL('r-knitr-markdown.html')  
-# ```{r code}
-# #' Parse botnet
-# #'
-# #' "main" file which downloads the file if needed
-# #' and processes it for a better understanding
-# #'
-# #'
-# #' @examples
-# #' TBD
-# #'
-# #' @export
-# analysis.df <- function(df1){
-#   df1 <- get.feodo()
-#   #renaming some ugly columns
-#   colnames(df1)[colnames(df1)=="X..Firstseen"] <- "DetectedDate"
-#   names(df1)[1]<-"DetectedDate"
-#   colnames(df1)[colnames(df1)=="LastOnline"] <- "LastOnlineDate"
-#   cat("Current lenght: ", length(df1),"\n")
-#   View(df1)
-#   #nrow()
-#   #nchar()
-# }
-# ```
+La fuente de los datos utilizados es accesible desde el siguiente enlace <https://feodotracker.abuse.ch/>.  
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
 ## Including Map
-```{r map, echo=FALSE}
+```{r map, include=FALSE, cache=TRUE}
 # Cargamos el dataset con las coordenadas de Lat/Long
-library(Group4)
 df.feo<-maxmindg4.df()
+```
+```{r strg4, include=FALSE ,echo=FALSE}
 str(df.feo)
 ```
-Representando esta informaci?n con un gr?fico de dispersi?n podemos ver que la distribuci?n se asemeja notablemente al mapamundi:
-```{r dispersion_coord, echo = FALSE, cache = TRUE, fig.align = 'center'}
-library(ggplot2)
-# Creamos ggplot con los datos de feodo
-gg <- ggplot(data=df.feo, aes(x=longitude, y=latitude)) 
-# definimos la grafica por puntos con transparencia
-gg <- gg + geom_point(size=3, color="red", alpha=1/40) 
-# Titulos de los ejes
-gg <- gg + xlab("Longitude") + ylab("Latitude")
-# aplicamos el tema simple
-gg <- gg + theme_bw() 
-# tarda un poco pq son 800.000 puntos
-print(gg)
-```
-Con esta representaci?n se puede identificar que la mayor concentraci?n de infecciones ocurren en la mayor parte de Europa, la costa este de EEUU y en menor grado en Jap?n y otros puntos del planeta.  
-A?adimos informaci?n sobre paises y sus fronteras para enriquecer el mapa.
+Mapa con la ubicación de las botnets.
 ```{r map_simple, echo=FALSE, cache=TRUE, fig.align='center'}
 world <- map_data("world")
 # Quitamos el continete Antarctico ya que no aporta informaci?n
@@ -106,14 +63,54 @@ gg <- gg + geom_path(aes(group=group), colour="gray70")
 # La definici?n de la proyeccion representa la "curvatura" del mapa
 gg <- gg + coord_map("mercator", xlim=c(-200, 200))
 # A?adimos una capa al mapa con la informaci?n de Zero Access
-gg <- gg + geom_point(data=df.feo, aes(longitude, latitude), 
+gg <- gg + geom_point(data=df.feo, aes(longitude, latitude),
                       colour="red", alpha=1/40, size=5)
 # Eliminamos texto y le damos un poco de color
-gg <- gg + theme(text=element_blank(), 
+gg <- gg + theme(text=element_blank(),
                  axis.ticks=element_blank(),
                  panel.grid=element_blank(),
                  panel.background=element_rect(color="gray50",
                                                fill="white"))
 print(gg)
+
 ```
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r mapa, include=TRUE, echo = FALSE}
+library(maps)
+library(dplyr)
+library(leaflet)
+library(Group4)
+library(ggplot2)
+library(RcmdrMisc)
+if(!file.exists("df.feo")) df.feo<-maxmindg4.df()
+#Mapa basico
+worldleafmap<-map("world",fill=TRUE,plot=FALSE,wrap=c(-180,180,NA))
+worldmap<-leaflet(worldleafmap) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10,alpha=NULL),stroke=FALSE)
+worldmap %>% addCircles(lng=df.feo$longitude,lat=df.feo$latitude,radius = 50, color = '#ff0000')
+#Distribución por tipo de Botnet
+barplot(height = table(df.feo$Malware),col = "red",main = "Botnet type distribution")
+#Grafico de la última fecha en la que se detecto y estuvo activo
+#hist(x = df.feo$DetectedDate, breaks = 10, col = "green",main = "detected date distribution")
+qplot(x = df.feo$DetectedDate,geom = "density",colour = I("green"))
+#hist(x = df.feo$LastOnlineDate, breaks = 10, col = "blue",main = "Last online by date")
+qplot(x = df.feo$LastOnlineDate,geom = "density",colour = I("blue"))
+#Dias de la semana en la que se detectaron los ataques
+barplot(height = table(factor(df.feo$DetectedWeekday,levels=c("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"))),col = "orange",main = "Botnet type distribution")
+#Dia de la semana y continente
+g <- ggplot(df.feo, aes(factor(df.feo$DetectedWeekday,levels=c("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")), df.feo$continent_name, color = df.feo$Malware))
+g + geom_count() + labs(title="complete continent & weekday data") + xlab("weekday") +
+ylab("Continent Name")
+
+
+#attempting a K-means trying to find clusters showing relations of factors
+#only numeric/factor fields
+df.feo3<-df.feo[,c("DstIP","latitude","longitude")]
+df.feo3<-RcmdrMisc::KMeans(df.feo3,centers=4,iter.max = 40,num.seeds = 5)
+df.feo2<-cbind(df.feo,df.feo3$cluster)
+df.feocluster1<-df.feo[df.feo2$cluster==1,]
+df.feocluster2<-df.feo[df.feo2$cluster==2,]
+df.feocluster3<-df.feo[df.feo2$cluster==3,]
+df.feocluster4<-df.feo[df.feo2$cluster==4,]
+#Results yet to be analyzed
+```
