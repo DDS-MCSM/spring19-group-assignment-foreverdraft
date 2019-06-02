@@ -113,7 +113,10 @@ generate.df <- function(df,nrows){
 #'
 #' @export
 clean.df <- function(df3){
+    #one row of last online table
     df4<-df3[!is.na(df3[1]),]
+    #10 values of LastOnlineDate
+    df4<-df4[!is.na(df4[4]),]
     return(df4)
 }
 

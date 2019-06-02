@@ -2,7 +2,9 @@
 title: "AssigmentDocumented"
 author: "Group4"
 date: "5/24/2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r load_packages, echo = FALSE, cache = TRUE}
@@ -79,6 +81,7 @@ library(dplyr)
 library(leaflet)
 library(Group4)
 library(ggplot2)
+library(RcmdrMisc)
 if(!file.exists("df.feo")) df.feo<-maxmindg4.df()
 # Basic choropleth with leaflet?
 leaflet(df.feo) %>%
@@ -102,5 +105,16 @@ barplot(height = table(df.feo$DetectedWeekday),col = "orange",main = "Botnet typ
 g <- ggplot(df.feo, aes(df.feo$DetectedWeekday, df.feo$continent_name, color = df.feo$Malware))
 g + geom_count() + labs(title="complete continent & weekday data") + xlab("weekday") +
 ylab("Continent Name")
+
+#attempting a K-means trying to find clusters showing relations of factors
+#only numeric/factor fields
+df.feo3<-df.feo[,c("DstIP","latitude","longitude")]
+df.feo3<-RcmdrMisc::KMeans(df.feo3,centers=4,iter.max = 40,num.seeds = 5)
+df.feo2<-cbind(df.feo,df.feo3$cluster)
+df.feocluster1<-df.feo[df.feo2$cluster==1,]
+df.feocluster2<-df.feo[df.feo2$cluster==2,]
+df.feocluster3<-df.feo[df.feo2$cluster==3,]
+df.feocluster4<-df.feo[df.feo2$cluster==4,]
+#Results yet to be analyzed
 ```
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
