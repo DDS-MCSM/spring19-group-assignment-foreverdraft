@@ -83,25 +83,21 @@ library(Group4)
 library(ggplot2)
 library(RcmdrMisc)
 if(!file.exists("df.feo")) df.feo<-maxmindg4.df()
-# Basic choropleth with leaflet?
-leaflet(df.feo) %>%
-addTiles()  %>%
-setView( lat=10, lng=0 , zoom=2) %>% addCircles(lng = ~longitude, lat = ~latitude)
-#basic other map
+#Mapa basico
 worldleafmap<-map("world",fill=TRUE,plot=FALSE,wrap=c(-180,180,NA))
 worldmap<-leaflet(worldleafmap) %>% addTiles() %>%
   addPolygons(fillColor = topo.colors(10,alpha=NULL),stroke=FALSE)
 worldmap %>% addCircles(lng=df.feo$longitude,lat=df.feo$latitude,radius = 50, color = '#ff0000')
-#distribution of bot type
+#Distribución por tipo de Botnet
 barplot(height = table(df.feo$Malware),col = "red",main = "Botnet type distribution")
-#detected and last online dates graph
+#Grafico de la última fecha en la que se detecto y estuvo activo
 #hist(x = df.feo$DetectedDate, breaks = 10, col = "green",main = "detected date distribution")
 qplot(x = df.feo$DetectedDate,geom = "density",colour = I("green"))
 #hist(x = df.feo$LastOnlineDate, breaks = 10, col = "blue",main = "Last online by date")
 qplot(x = df.feo$LastOnlineDate,geom = "density",colour = I("blue"))
-#detected weekday
+#Dias de la semana en la que se detectaron los ataques
 barplot(height = table(df.feo$DetectedWeekday),col = "orange",main = "Botnet type distribution")
-#exaustive weekday and country name data
+#Dia de la semana y continente
 g <- ggplot(df.feo, aes(df.feo$DetectedWeekday, df.feo$continent_name, color = df.feo$Malware))
 g + geom_count() + labs(title="complete continent & weekday data") + xlab("weekday") +
 ylab("Continent Name")
