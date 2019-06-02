@@ -100,9 +100,9 @@ qplot(x = df.feo$DetectedDate,geom = "density",colour = I("green"))
 #hist(x = df.feo$LastOnlineDate, breaks = 10, col = "blue",main = "Last online by date")
 qplot(x = df.feo$LastOnlineDate,geom = "density",colour = I("blue"))
 #detected weekday
-barplot(height = table(df.feo$DetectedWeekday),col = "orange",main = "Botnet type distribution")
+barplot(height = table(factor(df.feo$DetectedWeekday,levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))),col = "orange",main = "Botnet type distribution")
 #exaustive weekday and country name data
-g <- ggplot(df.feo, aes(df.feo$DetectedWeekday, df.feo$continent_name, color = df.feo$Malware))
+g <- ggplot(df.feo, aes(factor(df.feo$DetectedWeekday,levels=c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")), df.feo$continent_name, color = df.feo$Malware))
 g + geom_count() + labs(title="complete continent & weekday data") + xlab("weekday") +
 ylab("Continent Name")
 
@@ -111,6 +111,7 @@ ylab("Continent Name")
 df.feo3<-df.feo[,c("DstIP","latitude","longitude")]
 df.feo3<-RcmdrMisc::KMeans(df.feo3,centers=4,iter.max = 40,num.seeds = 5)
 df.feo2<-cbind(df.feo,df.feo3$cluster)
+df.feo3
 df.feocluster1<-df.feo[df.feo2$cluster==1,]
 df.feocluster2<-df.feo[df.feo2$cluster==2,]
 df.feocluster3<-df.feo[df.feo2$cluster==3,]
